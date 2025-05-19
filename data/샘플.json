@@ -1,0 +1,125 @@
+[
+    {
+        "id":"KCLANPO23N000000093",
+        "name":"신명지",
+        "category":"관광지",
+        "theme":"유명사적\/유적지",
+        "address":"제주특별자치도 제주시 애월읍 봉성리 500416",
+        "address_detail":"정보없음",
+        "lat":33.41878956,
+        "lng":126.3146237,
+        "tags":[
+            "유명사적",
+            "제주",
+            "서부지역",
+            "유적지"
+        ],
+        "description":"정보없음",
+        "main_menu":"정보없음",
+        "sub_menus":[
+
+        ],
+        "opening_hours":"정보없음",
+        "closed":"정보없음",
+        "phone":"정보없음",
+        "theme_mapping":"역사\/문화유산"
+    },
+    {
+        "id":"KCLANPO23N000000108",
+        "name":"유어선매표소",
+        "category":"관광지",
+        "theme":"관광안내소\/매표소",
+        "address":"제주특별자치도 제주시 구좌읍 종달리 478-10",
+        "address_detail":"해맞이해안로 2274",
+        "lat":33.49726092,
+        "lng":126.9110722,
+        "tags":[
+            "제주",
+            "관광안내소",
+            "매표소",
+            "동부지역",
+            "바다 전망"
+        ],
+        "description":"정보없음",
+        "main_menu":"정보없음",
+        "sub_menus":[
+
+        ],
+        "opening_hours":"정보없음",
+        "closed":"정보없음",
+        "phone":"정보없음",
+        "theme_mapping":"편의시설"
+    },
+    {
+        "id":"KCLANPO23N000000109",
+        "name":"동산물감귤체험농장",
+        "category":"관광지",
+        "theme":"관광농원\/허브마을",
+        "address":"제주특별자치도 서귀포시 성산읍 수산리 1948",
+        "address_detail":"서성일로 809",
+        "lat":33.43626012,
+        "lng":126.8672266,
+        "tags":[
+            "허브마을",
+            "제주",
+            "동부지역",
+            "관광농원"
+        ],
+        "description":"정보없음",
+        "main_menu":"정보없음",
+        "sub_menus":[
+
+        ],
+        "opening_hours":"정보없음",
+        "closed":"정보없음",
+        "phone":"정보없음",
+        "theme_mapping":"체험\/레저"
+    },
+    {
+        "id":"KCLANPO23N000000155",
+        "name":"팜스테이펜션",
+        "category":"관광지",
+        "theme":"팜스테이",
+        "address":"제주특별자치도 서귀포시 호근동  569-8",
+        "address_detail":"정보없음",
+        "lat":33.2505176,
+        "lng":126.5368342,
+        "tags":[
+            "팜스테이",
+            "제주"
+        ],
+        "description":"정보없음",
+        "main_menu":"정보없음",
+        "sub_menus":[
+
+        ],
+        "opening_hours":"정보없음",
+        "closed":"정보없음",
+        "phone":"정보없음",
+        "theme_mapping":"체험\/레저"
+    },
+    {
+        "id":"KCLANPO23N000000168",
+        "name":"한라산국립공원성판악매표소",
+        "category":"관광지",
+        "theme":"관광안내소\/매표소",
+        "address":"제주특별자치도 제주시 조천읍 교래리 산137-24",
+        "address_detail":"516로 1865",
+        "lat":33.38501797,
+        "lng":126.6193109,
+        "tags":[
+            "매표소",
+            "제주",
+            "관광안내소"
+        ],
+        "description":"정보없음",
+        "main_menu":"정보없음",
+        "sub_menus":[
+
+        ],
+        "opening_hours":"정보없음",
+        "closed":"정보없음",
+        "phone":"정보없음",
+        "theme_mapping":"편의시설"
+    }
+]
