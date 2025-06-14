@@ -31,15 +31,18 @@ selected_themes = st.multiselect("해당 관광 테마 선택", all_themes, max_
 all_categories = sorted(restaurant_data["대분류"].dropna().unique())
 selected_categories = st.multiselect("음식 카테고리 선택", all_categories, max_selections=2)
 
-# ✅ 버튼 누르면 추천 시작 trigger 저장
-if st.button("추천 시작하기"):
-    st.session_state["trigger"] = True
+day_options = {"1일 내": 1, "1박 2일": 2, "2박 3일": 3}
+selected_day_option = st.radio("여행 일수를 선택해주세요", list(day_options.keys()))
+days = day_options[selected_day_option]
 
-# ✅ 버튼 눌렀을 때만 아래 추천 결과 실행
+if st.button("추천 시작하기"):
+    st.session_state.trigger = True
+
 if st.session_state.get("trigger", False):
 
-    def recommend_places(lat, lng, themes, top_n=1, use_distance=True):
+    def recommend_places(lat, lng, themes, top_n=1, used_places=[], use_distance=True):
         candidates = tour_data.copy()
+        candidates = candidates[~candidates["name"].isin(used_places)]
         candidates["거리_km"] = candidates.apply(lambda row: geodesic((lat, lng), (row["lat"], row["lng"])).km, axis=1)
         if not themes:
             return pd.DataFrame()
@@ -87,60 +90,72 @@ if st.session_state.get("trigger", False):
         candidates = candidates[candidates["거리_km"] <= 5]
         return candidates.sort_values(by="거리_km").head(top_n)
 
-    def show_map(top_tour, top_food, top_cafe, second_tour):
-        m = folium.Map(location=[top_tour["lat"], top_tour["lng"]], zoom_start=11,tiles="CartoDB positron")
+    def show_map_multiple_days(all_day_points):
+        if not all_day_points:
+            st.warning("경로 정보가 없습니다.")
+            return
 
-        locations = [
-            (top_tour["lat"], top_tour["lng"], f"1️⃣ 관광지 1: {top_tour['name']}", "blue"),
-            (top_food["위도"], top_food["경도"], f"2️⃣ 음식점: {top_food['명칭']}", "green"),
-            (top_cafe["위도"], top_cafe["경도"], f"3️⃣ 카페: {top_cafe['명칭']}", "purple"),
-            (second_tour["lat"], second_tour["lng"], f"4️⃣ 관광지 2: {second_tour['name']}", "red")
-        ]
+        m = folium.Map(location=all_day_points[0][0][0:2], zoom_start=10, tiles="CartoDB positron")
 
-        for lat, lng, popup, color in locations:
-            folium.Marker([lat, lng], popup=popup, icon=folium.Icon(color=color)).add_to(m)
+        color_cycle = ["blue", "green", "purple", "red", "orange"]
+        for i, points in enumerate(all_day_points):
+            day_color = color_cycle[i % len(color_cycle)]
+            for j, (lat, lng, label) in enumerate(points):
+                folium.Marker(
+                    location=[lat, lng],
+                    popup=f"Day {i+1} - {label}",
+                    icon=folium.Icon(color=day_color)
+                ).add_to(m)
+            folium.PolyLine([(lat, lng) for lat, lng, _ in points], color=day_color, weight=3, opacity=0.8).add_to(m)
 
-        points = [(lat, lng) for lat, lng, _, _ in locations]
-        folium.PolyLine(points, color="orange", weight=3, opacity=0.8).add_to(m)
+        st.markdown("### 🗺️ 전체 일정 경로 지도")
+        st_folium(m, width=800, height=600)
 
-        st.markdown("### 🗺️ 경로 지도")
-        st_folium(m, width=700, height=500)
+    lat, lng = airport_lat, airport_lng
+    used_places = []
+    all_day_points = []
 
-    # ✅ Step 1
-    tour_result = recommend_places(airport_lat, airport_lng, selected_themes, use_distance=False)
-    if tour_result.empty:
-        st.warning("관광지 추천 결과가 없습니다.")
-    else:
-        top_tour = tour_result.iloc[0]
-        st.markdown("### 1️⃣ 1차 관광지")
-        st.dataframe(tour_result[["name", "theme", "theme_category", "address", "거리_km"]])
+    for i in range(days):
+        tour1 = recommend_places(lat, lng, selected_themes, used_places=used_places, use_distance=False)
+        if tour1.empty:
+            st.warning(f"{i+1}일차 추천 실패")
+            break
+        top_tour = tour1.iloc[0]
+        used_places.append(top_tour["name"])
 
-        # ✅ Step 2
-        food_result = recommend_restaurants(top_tour["lat"], top_tour["lng"], selected_categories)
-        if food_result.empty:
-            st.warning("음식점 추천 결과가 없습니다.")
+        food = recommend_restaurants(top_tour["lat"], top_tour["lng"], selected_categories)
+        if food.empty:
+            st.warning("음식점 추천 실패")
+            break
+        top_food = food.iloc[0]
+
+        cafe = recommend_restaurants(top_food["위도"], top_food["경도"], ["카페"])
+        if cafe.empty:
+            st.warning("카페 추천 실패")
+            break
+        top_cafe = cafe.iloc[0]
+
+        tour2 = recommend_places(top_food["위도"], top_food["경도"], selected_themes, used_places=used_places)
+        if not tour2.empty:
+            second_tour = tour2.iloc[0]
+            used_places.append(second_tour["name"])
         else:
-            top_food = food_result.iloc[0]
-            st.markdown("### 2️⃣ 2차 음식점")
-            st.dataframe(food_result[["명칭", "대분류", "주소", "거리_km"]])
+            second_tour = top_tour
 
-            # ✅ Step 3
-            cafe_result = recommend_restaurants(top_food["위도"], top_food["경도"], ["카페"])
-            if cafe_result.empty:
-                st.warning("카페 추천 결과가 없습니다.")
-            else:
-                top_cafe = cafe_result.iloc[0]
-                st.markdown("### 3️⃣ 3차 카페")
-                st.dataframe(cafe_result[["명칭", "대분류", "주소", "거리_km"]])
+        st.subheader(f"Day {i+1} 일정")
+        st.dataframe(pd.DataFrame([top_tour]))
+        st.dataframe(pd.DataFrame([top_food]))
+        st.dataframe(pd.DataFrame([top_cafe]))
+        st.dataframe(pd.DataFrame([second_tour]))
 
-                # ✅ Step 4
-                remaining_themes = [t for t in all_themes if t not in selected_themes]
-                tour_result2 = recommend_places(top_food["위도"], top_food["경도"], remaining_themes, use_distance=True)
-                if tour_result2.empty:
-                    st.warning("새로운 관광지 추천 결과가 없습니다.")
-                    show_map(top_tour, top_food, top_cafe, top_tour)
-                else:
-                    second_tour = tour_result2.iloc[0]
-                    st.markdown("### 4️⃣ 4차 관광지 (new theme)")
-                    st.dataframe(tour_result2[["name", "theme", "theme_category", "address", "거리_km"]])
-                    show_map(top_tour, top_food, top_cafe, second_tour)
+        points = [
+            (top_tour["lat"], top_tour["lng"], "1차 관광지"),
+            (top_food["위도"], top_food["경도"], "2차 음식점"),
+            (top_cafe["위도"], top_cafe["경도"], "3차 카페"),
+            (second_tour["lat"], second_tour["lng"], "4차 관광지")
+        ]
+        all_day_points.append(points)
+
+        lat, lng = second_tour["lat"], second_tour["lng"]
+
+    show_map_multiple_days(all_day_points)
